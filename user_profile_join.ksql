@@ -1,0 +1,8 @@
+-- Change scope default to earliest
+SET 'auto.offset.reset'='earliest';
+
+-- Now generate 
+create stream up_joined as 
+select CONCAT(up.firstname, ' ',ucase(up.lastname), ' from ', ct.country, ' has a rating of ', cast(rating as VARCHAR), ' stars.')
+from USERPROFILE up 
+let join COUNTRYTABLE ct on ct.countrycode=up.countrycode;
