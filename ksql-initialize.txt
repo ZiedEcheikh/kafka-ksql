@@ -1,0 +1,43 @@
+kafka-topics.sh --bootstrap-server localhost:9092 --topic USERS --replication-factor 1 --partitions 1 --create
+kafka-console-producer.sh --bootstrap-server localhost:9092 --topic USERS
+kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic USERS
+
+SET 'auto.offset.reset'='earliest';
+CREATE STREAM users_stream (name VARCHAR, countrycode VARCHAR) WITH (KAFKA_TOPIC='USERS', VALUE_FORMAT='DELIMITED');
+SELECT name, countryname FROM users_stream;
+
+
+CREATE TABLE COUNTRIES_COUNT AS SELECT countrycode, count(*) FROM users_stream GROUP BY countrycode;
+
+SELECT * FROM COUNTRIES_COUNT;
+
+drop stream if exists users_stream delete topic;
+
+drop table COUNTRIES_COUNT;
+
+drop stream if exists users_stream delete topic;
+
+show streams;
+show topics; 
+show tables;
+**************************************************
+kafka-topics.sh --bootstrap-server localhost:9092 --topic USERPROFILE --replication-factor 1 --partitions 1 --create;
+
+kafka-console-producer.sh --bootstrap-server localhost:9092 --topic USERPROFILE
+
+{"userid":1000, "firstname":"Alison", "lastname": "ECHEIKH", "countrycode":"TU", "rating": 4.7}
+
+{"userid":9000, "firstname":"Asma", "lastname": "ECHEIKH", "countrycode":"TU", "rating": 3.2}
+
+{"userid":9000, "firstname":"RAE", "lastname": "MPEA", "countrycode":"FR", "rating": 2.4}
+
+CREATE STREAM users_profile (userid INT, firstname VARCHAR, lastname VARCHAR, countrycode VARCHAR, rating DOUBLE) WITH (KAFKA_TOPIC='USERPROFILE', VALUE_FORMAT='JSON');
+
+SELECT userid, firstname FROM users_profile EMIT CHANGES;
+
+describe users_profile;
+******************************************************
+ksql-datagen schema=/home/kafka/confluent/userprofile.avro format=json topic=USERPROFILE key=userid maxInterval=5000 iterations=100
+print 'USERPROFILE' interval 5;
+
+Select TIMESTAMPTOSTRING(rowtime, 'dd/MMM HH:mm') as createtime, CONCAT(firstname, ' ',ucase(lastname)) as full_name FROM users_profile;
