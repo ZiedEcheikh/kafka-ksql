@@ -41,3 +41,8 @@ ksql-datagen schema=/home/kafka/confluent/userprofile.avro format=json topic=USE
 print 'USERPROFILE' interval 5;
 
 Select TIMESTAMPTOSTRING(rowtime, 'dd/MMM HH:mm') as createtime, CONCAT(firstname, ' ',ucase(lastname)) as full_name FROM users_profile;
+*******************************************************************
+
+run script './user_profile_pretty.ksql';
+DESCRIBE USER_PROFILE_PRETTY EXTENDED;
+DROP stream IF EXISTS USER_PROFILE_PRETTY DELETE TOPIC;
