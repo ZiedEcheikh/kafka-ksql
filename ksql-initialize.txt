@@ -103,3 +103,9 @@ GROUP BY data_continent;
 
 00:28:00 | 00:29:00 | Europ | [London, London, Paris] | 5
 00:28:00 | 00:29:00 | Americas | [Seatle, San Francisco, San Francisco] | 4
+_______________________________________________________________________________________________
+
+show queries; 
+ctas => create table as select 
+csas => create stream as select
+explain csas_my_stream2;
