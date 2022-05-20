@@ -46,3 +46,60 @@ Select TIMESTAMPTOSTRING(rowtime, 'dd/MMM HH:mm') as createtime, CONCAT(firstnam
 run script './user_profile_pretty.ksql';
 DESCRIBE USER_PROFILE_PRETTY EXTENDED;
 DROP stream IF EXISTS USER_PROFILE_PRETTY DELETE TOPIC;
+****************************************************************
+select up.firstname, up.lastname, up.countrycode, ct.countryname
+from USERPROFILE up 
+let join COUNTRYTABLE ct on ct.countrycode=up.countrycode;
+
+**************************************************
+Build a rekeyed table:
+create stream weatherrekeyed as select * from weatherraw partition by city_name;
+_________________________________________________________________________________________________________
+Repartition a stream: 
+
+Can't join since the number of partition don't match.
+
+Please repartition either one so that the number of partitions match.
+
+create stream driverprofile_rekeyed with (partition=1) as select * from driver_profile partition by driver_name;
+
+describe driverprofile_rekeyed entended;
+
+select dp2.driver_name, ct.countryname, dp2.rating 
+from  driverprofile_rekeyed dp2 
+left joint countrytable ct on ct.countrycode = dp2.countrycode;
+
+2 streams with topics 1 partition
+______________________________________________________________________________________________________________
+Merging Streams: 
+
+____________________________________________________________________________________________________________
+windowing:
+select data_continent, city_name, count(*)
+from rr_world 
+window tumbling(size 60 seconds)
+group by data_continent, city_name; 
+
+Europe   | London | 3
+Americas | Fresno | 3
+
+select continent, city_name, COLLECT_LIST(user)
+from rr_world
+window tumbling (size 60 seconds) 
+group by data_continent, city_name; 
+
+Europe   | London | 3 [EVE]
+Americas | Fresno | 3 [Judy, Zied]
+
+Select TIMESTAMPTOSTRING(WindowStart(), 'HH:mm:ss'), TIMESTAMPTOSTRING(WindowEnd(), 'HH:mm:ss')
+, data_continent
+TOPK(city_name, 3)
+count(*)
+WINDOW TUMBLING (size 1 minute)
+GROUP BY data_continent;
+
+00:28:00 | 00:29:00 | Europ | [London, London] | 2
+00:28:00 | 00:29:00 | Americas | [Seatle] | 1
+
+00:28:00 | 00:29:00 | Europ | [London, London, Paris] | 5
+00:28:00 | 00:29:00 | Americas | [Seatle, San Francisco, San Francisco] | 4
